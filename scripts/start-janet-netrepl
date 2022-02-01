@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+janet -e '(import spork/netrepl) (netrepl/server)' &>/dev/null & 
