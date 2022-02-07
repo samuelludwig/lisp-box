@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# Install PHP from GitHub
+
+cpu_count=$(grep 'processor' /proc/cpuinfo | wc -l)
+
+git clone https://github.com/php/php-src.git
+
+branch=$1
+
+cd php-src \
+  && git checkout $branch \
+  && ./buildconf && ./configure --enable-debug \
+  && make -j$cpu_count && make TEST_PHP_ARGS=-j$cpu_count && make install
+
+# Configure php
+php_version=$(php --version | head -n1 | awk '{ print $2 }' | grep -Po '\d+\.\d+')
+echo 'extension=openssl.dll' >> /etc/php/$php_version/cli/php.ini
+echo 'allow_url_include = On' >> /etc/php/$php_version/cli/php.ini
+
+# Install composer (as suggested in 
+# https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md)
+
+EXPECTED_CHECKSUM="$(php -r 'copy("https://composer.github.io/installer.sig", "php://stdout");')"
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+ACTUAL_CHECKSUM="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
+
+if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]
+then
+    >&2 echo 'ERROR: Invalid installer checksum'
+    rm composer-setup.php
+    exit 1
+fi
+
+php composer-setup.php --quiet
+sudo mv composer.phar /usr/local/bin/composer
+RESULT=$?
+rm composer-setup.php
+exit $RESULT
