@@ -1,0 +1,3 @@
+[submodule "cosmic-nvimrc"]
+	path = cosmic-nvimrc
+	url = git@github.com:samuelludwig/cosmic-nvimrc.git

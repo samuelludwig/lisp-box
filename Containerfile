@@ -27,16 +27,8 @@ RUN apk --no-cache add \
     automake \
     build-base \
     cmake \
-    ninja \
     coreutils \
-    curl \
-    gettext-tiny-dev \
-    git \
-    libtool \
-    libgcc \
-    pkgconf \
-    unzip
-
+    git
 #
 # Python + Hy setup
 #
@@ -62,17 +54,6 @@ RUN dnf update -y && dnf groupinstall -y "Development Tools" && dnf install -y c
 COPY --from=neovim /neovim /neovim
 ARG VERSION=master
 RUN cd /neovim && git checkout ${VERSION} && make CMAKE_BUILD_TYPE=RelWithDebInfo && make install && rm -rf /neovim
-
-# # Copy over neovim files
-# COPY --from=neovim /usr/local/lib/nvim /usr/local/lib/nvim
-# COPY --from=neovim /usr/local/share/nvim /usr/local/share/nvim
-# COPY --from=neovim /usr/local/bin/nvim /usr/local/bin/nvim
-
-# Copy over magic-kit
-RUN mkdir -p ~/.config
-
-# Copy in magic-kit files
-RUN git clone https://github.com/Olical/magic-kit.git ~/.config/nvim
 
 
 # Bring over janet
