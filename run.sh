@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-podman run -it --volume=$(pwd)/nvim-conf:/root/.config/nvim:Z lisp-box
+podman run -it --volume=$(pwd)/cosmic-nvimrc:/root/.config/nvim:Z lisp-box
