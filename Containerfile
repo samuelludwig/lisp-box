@@ -1,34 +1,59 @@
-FROM docker.io/library/alpine AS janet
+FROM docker.io/library/fedora
 
-RUN apk --no-cache add \
-    autoconf \
-    automake \
-    build-base \
-    cmake \
-    coreutils \
-    git
+RUN mkdir -p ~/.config
+RUN mkdir -p ~/workbench
 
 #
-# Install janet + jpm
+# Install basic development tools and utils
 #
-RUN git clone https://github.com/janet-lang/janet.git /janet
+RUN dnf update -y && dnf groupinstall -y "Development Tools"
+RUN dnf install -y \
+      cmake \
+      automake \
+      libgcc \
+      gcc \
+      gcc-c++ \
+      make \
+      coreutils \
+      git \
+      ninja-build \
+      gettext \
+      unzip \
+      pkgconf \
+      autoconf \
+      libtool \
+      curl \
+      wget
 
-RUN git clone https://github.com/janet-lang/jpm.git /jpm
+COPY ./scripts /scripts
 
-
-
-FROM docker.io/library/alpine AS neovim
 
 #
-# Get the core utils
+# Install Neovim AppImage
 #
-RUN apk --no-cache add \
-    autoconf \
-    automake \
-    build-base \
-    cmake \
-    coreutils \
-    git
+RUN bash /scripts/install-neovim.sh
+
+# Install Packer packages, INSTALL env var is a hack
+RUN INSTALL=1 nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
+
+# Bring in our lisp-y config and symlink it to ~/.config/nvim
+RUN git clone https://github.com/samuelludwig/cosmic-nvimrc.git ~/workbench/cosmic-nvimrc
+RUN ln -s ~/workbench/cosmic-nvimrc ~/.config/nvim
+
+
+#
+# Install Langs of Choice
+#
+
+### Node.js+NPM
+
+# Install fnm
+RUN curl -fsSL https://fnm.vercel.app/install | bash
+# Install nvm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+
+RUN nvm use 16
+
 #
 # Python + Hy setup
 #
@@ -41,31 +66,6 @@ RUN apk --no-cache add \
 # Neovim setup
 #
 
-# Build neovim (and use it as an example codebase
-RUN git clone https://github.com/neovim/neovim.git /neovim
-
-
-
-FROM docker.io/library/fedora
-
-RUN dnf update -y && dnf groupinstall -y "Development Tools" && dnf install -y cmake automake libgcc gcc gcc-c++ make coreutils git ninja-build curl gettext unzip pkgconf autoconf libtool
-
-# Build neovim
-COPY --from=neovim /neovim /neovim
-ARG VERSION=master
-RUN cd /neovim && git checkout ${VERSION} && make CMAKE_BUILD_TYPE=RelWithDebInfo && make install && rm -rf /neovim
-
-
-# Bring over janet
-RUN mkdir -p /usr/local/bin
-COPY --from=janet /janet /janet
-COPY --from=janet /jpm /jpm
-RUN cd /janet && make && make test && make install
-
-RUN cd /jpm && janet bootstrap.janet && cd / && rm -r /jpm && jpm install spork
-
-COPY ./scripts /usr/local/bin
-
-WORKDIR /workbench
+WORKDIR ~/workbench
 
 ENTRYPOINT bash
