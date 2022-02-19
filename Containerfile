@@ -6,27 +6,22 @@ RUN mkdir -p ~/workbench
 #
 # Install basic development tools and utils
 #
-RUN dnf update -y && dnf groupinstall -y "Development Tools"
+RUN dnf update -y && dnf groupinstall -y "Development Tools" && dnf install -y coreutils
+RUN dnf install -y cmake automake make gcc gcc-c++ libgcc
 RUN dnf install -y \
-      cmake \
-      automake \
-      libgcc \
-      gcc \
-      gcc-c++ \
-      make \
-      coreutils \
       git \
-      ninja-build \
-      gettext \
       unzip \
       pkgconf \
       autoconf \
       libtool \
       curl \
-      wget
+      wget \
+      fuse \
+      fuse-libs
+
+RUN dnf install -y sqlite
 
 COPY ./scripts /scripts
-
 
 #
 # Install Neovim AppImage
@@ -34,7 +29,7 @@ COPY ./scripts /scripts
 RUN bash /scripts/install-neovim.sh
 
 # Install Packer packages, INSTALL env var is a hack
-RUN INSTALL=1 nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
+#RUN INSTALL=1 nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
 
 # Bring in our lisp-y config and symlink it to ~/.config/nvim
 RUN git clone https://github.com/samuelludwig/cosmic-nvimrc.git ~/workbench/cosmic-nvimrc
@@ -52,7 +47,7 @@ RUN curl -fsSL https://fnm.vercel.app/install | bash
 # Install nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 
-RUN nvm use 16
+#RUN nvm use 16
 
 #
 # Python + Hy setup
