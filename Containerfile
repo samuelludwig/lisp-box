@@ -26,7 +26,12 @@ COPY ./scripts /scripts
 #
 # Install Neovim AppImage
 #
-RUN bash /scripts/install-neovim.sh
+#RUN bash /scripts/install-neovim.sh
+# Build neovim (and use it as an example codebase
+RUN git clone https://github.com/neovim/neovim.git
+
+ARG VERSION=master
+RUN cd neovim && git checkout ${VERSION} && make CMAKE_BUILD_TYPE=RelWithDebInfo install && rm -rf /neovim
 
 # Install Packer packages, INSTALL env var is a hack
 #RUN INSTALL=1 nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'

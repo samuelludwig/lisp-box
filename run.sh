@@ -1,3 +1,6 @@
 #!/usr/bin/env sh
 
-podman run -it --volume=$(pwd)/cosmic-nvimrc:/root/.config/nvim:Z --volume=./../:/workbench:Z lisp-box
+CONTAINER_TOOL=podman
+hash podman 2>/dev/null || { CONTAINER_TOOL=docker; }
+
+$CONTAINER_TOOL run -it --volume=./:/workbench/box-dir:Z nvim-box
