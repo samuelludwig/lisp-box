@@ -3,4 +3,4 @@
 CONTAINER_TOOL=podman
 hash podman 2>/dev/null || { CONTAINER_TOOL=docker; }
 
-$CONTAINER_TOOL run -it --volume=./:/workbench/box-dir:Z --name=neovim-testbench nvim-box
+$CONTAINER_TOOL start neovim-testbench && $CONTAINER_TOOL attach neovim-testbench
