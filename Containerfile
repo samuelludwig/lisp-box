@@ -23,8 +23,9 @@ RUN dnf install -y sqlite
 
 COPY ./scripts /scripts
 
+
 #
-# Install Neovim AppImage
+# Install Neovim
 #
 #RUN bash /scripts/install-neovim.sh
 # Build neovim (and use it as an example codebase
@@ -33,7 +34,8 @@ RUN git clone https://github.com/neovim/neovim.git
 ARG VERSION=master
 RUN cd neovim && git checkout ${VERSION} && make CMAKE_BUILD_TYPE=RelWithDebInfo install && rm -rf /neovim
 
-# Install Packer packages, INSTALL env var is a hack
+# NOTE: This fails and kind of borks stuff...
+# Install Packer packages, INSTALL env var is a hack 
 #RUN INSTALL=1 nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
 
 # Bring in our lisp-y config and symlink it to ~/.config/nvim
@@ -45,27 +47,36 @@ RUN ln -s ~/workbench/cosmic-nvimrc ~/.config/nvim
 # Install Langs of Choice
 #
 
-### Node.js+NPM
+### Node.js+NPM (we'll be using NPM to install some language-servers as well)
 
 # Install fnm
 RUN curl -fsSL https://fnm.vercel.app/install | bash
 # Install nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+#RUN export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && nvm install node && nvm use node && npm install -g typescript-language-server && npm install -g intelephense
 
-#RUN nvm use 16
+# Install Node
+#NODE_VERSION=16 # `node` defaults to latest
+#RUN nvm install node && nvm use node
+
+#RUN npm install -g typescript-language-server
+
+### PHP
+#RUN npm install -g intelephense # Language-Server
+RUN dnf install -y php-cli
 
 #
 # Python + Hy setup
 #
 
+# TODO
+
 #
 # Clojure + Clojurescript setup
 #
 
-#
-# Neovim setup
-#
+# TODO
 
-WORKDIR ~/workbench
+WORKDIR /workbench
 
 ENTRYPOINT bash
